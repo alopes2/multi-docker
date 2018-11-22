@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t andrevitorlopes/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run andrevitorlopes/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t andrevitorlopes/multi-docker-client ./client
+  - docker build -t andrevitorlopes/multi-docker-nginx ./nginx
+  - docker build -t andrevitorlopes/multi-docker-server ./server
+  - docker build -t andrevitorlopes/multi-docker-worker ./worker
+  # Log in to docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Push images to docker hub
+  - docker push andrevitorlopes/multi-docker-client
+  - docker push andrevitorlopes/multi-docker-nginx
+  - docker push andrevitorlopes/multi-docker-server
+  - docker push andrevitorlopes/multi-docker-worker
